@@ -1,0 +1,1055 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf600
+{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red0\green116\blue0;\red0\green0\blue0;\red100\green56\blue32;
+\red196\green26\blue22;\red28\green0\blue207;\red170\green13\blue145;\red63\green110\blue116;\red92\green38\blue153;
+\red46\green13\blue110;\red38\green71\blue75;}
+{\*\expandedcolortbl;;\csgenericrgb\c0\c45600\c0;\csgenericrgb\c0\c0\c0;\csgenericrgb\c39100\c22000\c12500;
+\csgenericrgb\c77000\c10200\c8600;\csgenericrgb\c11000\c0\c81000;\csgenericrgb\c66500\c5200\c56900;\csgenericrgb\c24700\c43100\c45600;\csgenericrgb\c35900\c14900\c60100;
+\csgenericrgb\c18100\c5200\c43100;\csgenericrgb\c14900\c27800\c29400;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww26780\viewh18560\viewkind0
+\deftab593
+\pard\tx593\pardeftab593\pardirnatural\partightenfactor0
+
+\f0\fs22 \cf2 \CocoaLigature0 /*A program emulating an 8 step analog synthesizer sequencer.*/
+\fs24 \cf3 \
+
+\fs22 \cf2 /* IAP main.cpp */
+\fs24 \cf3 \
+
+\fs22 \cf4 #include \cf5 <stdio.h>\cf4 \
+#include \cf5 "aservelibs/aservelib.h"\cf4 \
+#include \cf5 <math.h>\cf4 \
+#define SIZE \cf6 16\cf4 \
+\cf2 //A structure containing variables associated to a note in the sequencer
+\fs24 \cf3 \
+
+\fs22 \cf7 typedef
+\fs24 \cf3  
+\fs22 \cf7 struct
+\fs24 \cf3 \
+\{\
+    
+\fs22 \cf7 int
+\fs24 \cf3  note_numb;\
+    
+\fs22 \cf7 int
+\fs24 \cf3  velocity;\
+    
+\fs22 \cf7 float
+\fs24 \cf3  frequency;\
+    
+\fs22 \cf7 int
+\fs24 \cf3  time;\
+\}SeqData;\
+
+\fs22 \cf2 /*Function declarations*/
+\fs24 \cf3 \
+
+\fs22 \cf7 void
+\fs24 \cf3  play(
+\fs22 \cf8 SeqData
+\fs24 \cf3  Seq_Notes[
+\fs22 \cf4 SIZE
+\fs24 \cf3 ][
+\fs22 \cf6 16
+\fs24 \cf3 ],
+\fs22 \cf7 int
+\fs24 \cf3  layers,
+\fs22 \cf7 int
+\fs24 \cf3  size);\
+
+\fs22 \cf7 void
+\fs24 \cf3  record(
+\fs22 \cf8 SeqData
+\fs24 \cf3  Seq_Notes[
+\fs22 \cf4 SIZE
+\fs24 \cf3 ][
+\fs22 \cf6 16
+\fs24 \cf3 ],
+\fs22 \cf7 int
+\fs24 \cf3  layers,
+\fs22 \cf7 int
+\fs24 \cf3  size,
+\fs22 \cf9 FILE
+\fs24 \cf3  * filePointer,
+\fs22 \cf7 int
+\fs24 \cf3  num);\
+
+\fs22 \cf7 void
+\fs24 \cf3  files(
+\fs22 \cf8 SeqData
+\fs24 \cf3  Seq[
+\fs22 \cf4 SIZE
+\fs24 \cf3 ][
+\fs22 \cf6 16
+\fs24 \cf3 ],
+\fs22 \cf7 int
+\fs24 \cf3  layers,
+\fs22 \cf7 int
+\fs24 \cf3  size,
+\fs22 \cf7 int
+\fs24 \cf3  lay);\
+
+\fs22 \cf7 int
+\fs24 \cf3  wavechoice(
+\fs22 \cf7 int
+\fs24 \cf3  waveform);\
+
+\fs22 \cf2 //-----------------------------------------------------------------------------------------------------------------------
+\fs24 \cf3 \
+
+\fs22 \cf7 int
+\fs24 \cf3  main()\
+\{\
+    
+\fs22 \cf8 SeqData
+\fs24 \cf3  Layer1[
+\fs22 \cf4 SIZE
+\fs24 \cf3 ][
+\fs22 \cf6 16
+\fs24 \cf3 ]\{
+\fs22 \cf6 0
+\fs24 \cf3 \};\
+    
+\fs22 \cf7 char
+\fs24 \cf3  choice=
+\fs22 \cf6 'R'
+\fs24 \cf3 ;
+\fs22 \cf2 /*stores user's choice to record or playback*/
+\fs24 \cf3 \
+    
+\fs22 \cf7 int
+\fs24 \cf3  size,layers,lay;\
+    
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "Enter number of layers:"
+\fs24 \cf3 );\
+    
+\fs22 \cf10 scanf
+\fs24 \cf3 (
+\fs22 \cf5 " %d"
+\fs24 \cf3 ,&layers);\
+    
+\fs22 \cf7 while
+\fs24 \cf3 (
+\fs22 \cf7 true
+\fs24 \cf3 )\
+    \{\
+        
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "Enter R for Record and P for Play:"
+\fs24 \cf3 );\
+        
+\fs22 \cf10 scanf
+\fs24 \cf3 (
+\fs22 \cf5 " %c"
+\fs24 \cf3 ,&choice);\
+        
+\fs22 \cf7 if
+\fs24 \cf3 (choice==
+\fs22 \cf6 'R'
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "Enter sequence length:"
+\fs24 \cf3 );\
+            
+\fs22 \cf10 scanf
+\fs24 \cf3 (
+\fs22 \cf5 " %d"
+\fs24 \cf3 ,&size);\
+            
+\fs22 \cf7 switch
+\fs24 \cf3 (layers)\
+            \{\
+                
+\fs22 \cf7 case
+\fs24 \cf3  
+\fs22 \cf6 2
+\fs24 \cf3 :
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "1)Record Layer1\\n2)Record Layer2\\n"
+\fs24 \cf3 );\
+                    
+\fs22 \cf10 scanf
+\fs24 \cf3 (
+\fs22 \cf5 " %d"
+\fs24 \cf3 ,&lay);\
+                    
+\fs22 \cf7 break
+\fs24 \cf3 ;\
+                
+\fs22 \cf7 case
+\fs24 \cf3  
+\fs22 \cf6 3
+\fs24 \cf3 :
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "1)Record Layer1\\n2)Record Layer2\\n3)Record Layer3\\n\\n"
+\fs24 \cf3 );\
+                    
+\fs22 \cf10 scanf
+\fs24 \cf3 (
+\fs22 \cf5 " %d"
+\fs24 \cf3 ,&lay);\
+                    
+\fs22 \cf7 break
+\fs24 \cf3 ;\
+                
+\fs22 \cf7 case
+\fs24 \cf3  
+\fs22 \cf6 4
+\fs24 \cf3 :
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "1)Record Layer1\\n2)Record Layer2\\n3)Record Layer3\\n4)Record Layer4\\n"
+\fs24 \cf3 );\
+                    
+\fs22 \cf10 scanf
+\fs24 \cf3 (
+\fs22 \cf5 " %d"
+\fs24 \cf3 ,&lay);\
+                    
+\fs22 \cf7 break
+\fs24 \cf3 ;\
+            \}\
+            
+\fs22 \cf11 files
+\fs24 \cf3 (Layer1,layers,size,lay);\
+        \}\
+        
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (choice==
+\fs22 \cf6 'P'
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf11 play
+\fs24 \cf3 (Layer1,layers,size);\
+        \}\
+    \}\
+    
+\fs22 \cf7 return
+\fs24 \cf3  
+\fs22 \cf6 0
+\fs24 \cf3 ;\
+\}\
+
+\fs22 \cf2 //-----------------------------------------------------------------------------------------------------------------------
+\fs24 \cf3 \
+
+\fs22 \cf2 /*A function that plays back all the notes from the files, by gathering appropriate note information*/
+\fs24 \cf3 \
+
+\fs22 \cf7 void
+\fs24 \cf3  play(
+\fs22 \cf8 SeqData
+\fs24 \cf3  Seq[
+\fs22 \cf4 SIZE
+\fs24 \cf3 ][
+\fs22 \cf6 16
+\fs24 \cf3 ],
+\fs22 \cf7 int
+\fs24 \cf3  layers,
+\fs22 \cf7 int
+\fs24 \cf3  size)\
+\{\
+    
+\fs22 \cf2 //Opening up files to read from
+\fs24 \cf3 \
+    
+\fs22 \cf9 FILE
+\fs24 \cf3 * L1=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L1.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "r"
+\fs24 \cf3 );\
+    
+\fs22 \cf9 FILE
+\fs24 \cf3 * L2=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L2.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "r"
+\fs24 \cf3 );\
+    
+\fs22 \cf9 FILE
+\fs24 \cf3 * L3=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L3.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "r"
+\fs24 \cf3 );\
+    
+\fs22 \cf9 FILE
+\fs24 \cf3 * L4=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L4.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "r"
+\fs24 \cf3 );\
+    
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "Playing Notes....\\n"
+\fs24 \cf3 );\
+    
+\fs22 \cf7 int
+\fs24 \cf3  stop;\
+    
+\fs22 \cf7 do
+\fs24 \cf3 \
+    \{\
+        
+\fs22 \cf7 float
+\fs24 \cf3  gain;\
+        
+\fs22 \cf2 //            float gain1,gain2,gain3;
+\fs24 \cf3 \
+        
+\fs22 \cf7 int
+\fs24 \cf3  transpose;\
+        
+\fs22 \cf7 int
+\fs24 \cf3  lay,temp;\
+        
+\fs22 \cf7 int
+\fs24 \cf3  index;
+\fs22 \cf2 /*A counter variable used for the for loop*/
+\fs24 \cf3 \
+        
+\fs22 \cf7 for
+\fs24 \cf3 (index=
+\fs22 \cf6 0
+\fs24 \cf3 ;index<size;index++)\
+        \{\
+            
+\fs22 \cf7 for
+\fs24 \cf3 (lay=
+\fs22 \cf6 0
+\fs24 \cf3 ;lay<layers;lay++)\
+            \{\
+                transpose=
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 41
+\fs24 \cf3 +lay)/
+\fs22 \cf6 10
+\fs24 \cf3 ;\
+                transpose*=
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 51
+\fs24 \cf3 +lay)==
+\fs22 \cf6 127
+\fs24 \cf3 ?-
+\fs22 \cf6 1
+\fs24 \cf3 :+
+\fs22 \cf6 1
+\fs24 \cf3 ;\
+                stop=
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 1
+\fs24 \cf3 );\
+                temp=
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 49
+\fs24 \cf3 )-
+\fs22 \cf6 90
+\fs24 \cf3 ;\
+                temp=
+\fs22 \cf6 127
+\fs24 \cf3 -temp;\
+                
+\fs22 \cf7 switch
+\fs24 \cf3 (lay)\
+                \{\
+                    
+\fs22 \cf7 case
+\fs24 \cf3  
+\fs22 \cf6 0
+\fs24 \cf3 :\
+                        
+\fs22 \cf10 fscanf
+\fs24 \cf3 (L1,
+\fs22 \cf5 "%d %d\\n"
+\fs24 \cf3 ,&Seq[index][lay].
+\fs22 \cf8 note_numb
+\fs24 \cf3 ,&Seq[index][lay].
+\fs22 \cf8 velocity
+\fs24 \cf3 );\
+                        
+\fs22 \cf7 break
+\fs24 \cf3 ;\
+                    
+\fs22 \cf7 case
+\fs24 \cf3  
+\fs22 \cf6 1
+\fs24 \cf3 :\
+                        
+\fs22 \cf10 fscanf
+\fs24 \cf3 (L2,
+\fs22 \cf5 "%d %d\\n"
+\fs24 \cf3 ,&Seq[index][lay].
+\fs22 \cf8 note_numb
+\fs24 \cf3 ,&Seq[index][lay].
+\fs22 \cf8 velocity
+\fs24 \cf3 );\
+                        
+\fs22 \cf7 break
+\fs24 \cf3 ;\
+                    
+\fs22 \cf7 case
+\fs24 \cf3  
+\fs22 \cf6 2
+\fs24 \cf3 :\
+                        
+\fs22 \cf10 fscanf
+\fs24 \cf3 (L3,
+\fs22 \cf5 "%d %d\\n"
+\fs24 \cf3 ,&Seq[index][lay].
+\fs22 \cf8 note_numb
+\fs24 \cf3 ,&Seq[index][lay].
+\fs22 \cf8 velocity
+\fs24 \cf3 );\
+                        
+\fs22 \cf7 break
+\fs24 \cf3 ;\
+                    
+\fs22 \cf7 case
+\fs24 \cf3  
+\fs22 \cf6 3
+\fs24 \cf3 :\
+                        
+\fs22 \cf10 fscanf
+\fs24 \cf3 (L4,
+\fs22 \cf5 "%d %d\\n"
+\fs24 \cf3 ,&Seq[index][lay].
+\fs22 \cf8 note_numb
+\fs24 \cf3 ,&Seq[index][lay].
+\fs22 \cf8 velocity
+\fs24 \cf3 );\
+                        
+\fs22 \cf7 break
+\fs24 \cf3 ;\
+                \}\
+                gain=(
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 55
+\fs24 \cf3 +lay)==
+\fs22 \cf6 127
+\fs24 \cf3 )?
+\fs22 \cf6 0.0
+\fs24 \cf3 :Seq[index][lay].
+\fs22 \cf8 velocity
+\fs24 \cf3 +(
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 25
+\fs24 \cf3 +lay)/
+\fs22 \cf6 127.0
+\fs24 \cf3 )/
+\fs22 \cf6 127.0
+\fs24 \cf3 +
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 25
+\fs24 \cf3 +lay)/
+\fs22 \cf6 200
+\fs24 \cf3 ;\
+                
+\fs22 \cf2 //                            gain1=(float)(aserveGetControl(47)/100)/2;
+\fs24 \cf3 \
+                
+\fs22 \cf2 //                            gain2=(1.0-gain1)/2;
+\fs24 \cf3 \
+                Seq[index][lay].
+\fs22 \cf8 frequency
+\fs24 \cf3 =
+\fs22 \cf6 440
+\fs24 \cf3 *
+\fs22 \cf10 pow
+\fs24 \cf3 (
+\fs22 \cf6 2
+\fs24 \cf3 ,((Seq[index][lay].
+\fs22 \cf8 note_numb
+\fs24 \cf3 +transpose)-
+\fs22 \cf6 69
+\fs24 \cf3 )/
+\fs22 \cf6 12.0
+\fs24 \cf3 );\
+                Seq[index][lay].
+\fs22 \cf8 frequency
+\fs24 \cf3 =
+\fs22 \cf6 440
+\fs24 \cf3 *
+\fs22 \cf10 pow
+\fs24 \cf3 (
+\fs22 \cf6 2
+\fs24 \cf3 ,((Seq[index][lay].
+\fs22 \cf8 note_numb
+\fs24 \cf3 +transpose)-
+\fs22 \cf6 69
+\fs24 \cf3 )/
+\fs22 \cf6 12.0
+\fs24 \cf3 );\
+                
+\fs22 \cf2 //                            gain1=(float)Seq[index][layers].velocity/127.0-gain1;
+\fs24 \cf3 \
+                
+\fs22 \cf2 //                            gain2=(float)Seq[index][layers].velocity/127.0-gain2;
+\fs24 \cf3 \
+                
+\fs22 \cf11 aserveOscillator
+\fs24 \cf3 (lay,Seq[index][lay].
+\fs22 \cf8 frequency
+\fs24 \cf3 ,gain,
+\fs22 \cf11 wavechoice
+\fs24 \cf3 (
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 21
+\fs24 \cf3 +lay)));\
+                stop=
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 1
+\fs24 \cf3 );\
+            \}\
+            
+\fs22 \cf11 aserveSleep
+\fs24 \cf3 (temp);\
+            stop=
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 1
+\fs24 \cf3 );\
+        \}\
+    \}
+\fs22 \cf7 while
+\fs24 \cf3 (
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 1
+\fs24 \cf3 )==
+\fs22 \cf6 0
+\fs24 \cf3 );\
+    
+\fs22 \cf10 fclose
+\fs24 \cf3 (L1);\
+    
+\fs22 \cf10 fclose
+\fs24 \cf3 (L2);\
+    
+\fs22 \cf10 fclose
+\fs24 \cf3 (L3);\
+    
+\fs22 \cf10 fclose
+\fs24 \cf3 (L4);\
+    
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "Playback over..\\n"
+\fs24 \cf3 );\
+    
+\fs22 \cf2 //Reset the oscillators after playback is terminated
+\fs24 \cf3 \
+    
+\fs22 \cf11 aserveOscillator
+\fs24 \cf3 (
+\fs22 \cf6 0
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0
+\fs24 \cf3 );\
+    
+\fs22 \cf11 aserveOscillator
+\fs24 \cf3 (
+\fs22 \cf6 1
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0
+\fs24 \cf3 );\
+    
+\fs22 \cf11 aserveOscillator
+\fs24 \cf3 (
+\fs22 \cf6 2
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0
+\fs24 \cf3 );\
+    
+\fs22 \cf11 aserveOscillator
+\fs24 \cf3 (
+\fs22 \cf6 3
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0
+\fs24 \cf3 );\
+\}\
+
+\fs22 \cf2 //-----------------------------------------------------------------------------------------------------------------------
+\fs24 \cf3 \
+
+\fs22 \cf2 /*A function that plays back all the notes from the files, by gathering appropriate note information*/
+\fs24 \cf3 \
+
+\fs22 \cf7 void
+\fs24 \cf3  record(
+\fs22 \cf8 SeqData
+\fs24 \cf3  Seq_Notes[
+\fs22 \cf4 SIZE
+\fs24 \cf3 ][
+\fs22 \cf6 16
+\fs24 \cf3 ],
+\fs22 \cf7 int
+\fs24 \cf3  layers,
+\fs22 \cf7 int
+\fs24 \cf3  size,
+\fs22 \cf9 FILE
+\fs24 \cf3  * filePointer,
+\fs22 \cf7 int
+\fs24 \cf3  num)\
+\{\
+    
+\fs22 \cf7 int
+\fs24 \cf3  waveform;
+\fs22 \cf2 //Receives and stores the waveform value from the wavechoice function.
+\fs24 \cf3 \
+    
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "Recording Layer%d...\\n"
+\fs24 \cf3 ,num);\
+    
+\fs22 \cf7 for
+\fs24 \cf3  (
+\fs22 \cf7 int
+\fs24 \cf3  index=
+\fs22 \cf6 0
+\fs24 \cf3 ;index<
+\fs22 \cf6 2
+\fs24 \cf3 *size;index++)\
+    \{\
+        waveform=
+\fs22 \cf11 aserveGetControl
+\fs24 \cf3 (
+\fs22 \cf6 20
+\fs24 \cf3 +layers);\
+        Seq_Notes[index][layers].
+\fs22 \cf8 note_numb
+\fs24 \cf3 =
+\fs22 \cf11 aserveGetNote
+\fs24 \cf3 ();\
+        Seq_Notes[index][layers].
+\fs22 \cf8 velocity
+\fs24 \cf3 =
+\fs22 \cf11 aserveGetVelocity
+\fs24 \cf3 ();\
+        Seq_Notes[index][layers].
+\fs22 \cf8 frequency
+\fs24 \cf3 =
+\fs22 \cf6 440
+\fs24 \cf3 *
+\fs22 \cf10 pow
+\fs24 \cf3 (
+\fs22 \cf6 2
+\fs24 \cf3 ,(Seq_Notes[index][layers].
+\fs22 \cf8 note_numb
+\fs24 \cf3 -
+\fs22 \cf6 69
+\fs24 \cf3 )/
+\fs22 \cf6 12.0
+\fs24 \cf3 );\
+        
+\fs22 \cf11 aserveOscillator
+\fs24 \cf3 (
+\fs22 \cf6 0
+\fs24 \cf3 , Seq_Notes[index][layers].
+\fs22 \cf8 frequency
+\fs24 \cf3 ,(
+\fs22 \cf7 float
+\fs24 \cf3 )Seq_Notes[index][layers].
+\fs22 \cf8 velocity
+\fs24 \cf3 /
+\fs22 \cf6 127.0
+\fs24 \cf3 , 
+\fs22 \cf11 wavechoice
+\fs24 \cf3 (waveform));\
+        
+\fs22 \cf7 if
+\fs24 \cf3 (Seq_Notes[index][layers].
+\fs22 \cf8 velocity
+\fs24 \cf3 !=
+\fs22 \cf6 0
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf10 fprintf
+\fs24 \cf3 (filePointer,
+\fs22 \cf5 "%d %d\\n"
+\fs24 \cf3 ,Seq_Notes[index][layers].
+\fs22 \cf8 note_numb
+\fs24 \cf3 ,Seq_Notes[index][layers].
+\fs22 \cf8 velocity
+\fs24 \cf3 );\
+        \}\
+        \
+    \}\
+    
+\fs22 \cf10 printf
+\fs24 \cf3 (
+\fs22 \cf5 "Recording for Layer%d done.\\n"
+\fs24 \cf3 ,num);\
+    
+\fs22 \cf11 aserveOscillator
+\fs24 \cf3 (
+\fs22 \cf6 0
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0.0
+\fs24 \cf3 , 
+\fs22 \cf6 0
+\fs24 \cf3 );
+\fs22 \cf2 /*Stop oscillators after recording*/
+\fs24 \cf3 \
+    
+\fs22 \cf10 fclose
+\fs24 \cf3 (filePointer);\
+\}\
+
+\fs22 \cf7 void
+\fs24 \cf3  files(
+\fs22 \cf8 SeqData
+\fs24 \cf3  Seq[
+\fs22 \cf4 SIZE
+\fs24 \cf3 ][
+\fs22 \cf6 16
+\fs24 \cf3 ],
+\fs22 \cf7 int
+\fs24 \cf3  layers,
+\fs22 \cf7 int
+\fs24 \cf3  size,
+\fs22 \cf7 int
+\fs24 \cf3  lay)\
+\{\
+    
+\fs22 \cf7 if
+\fs24 \cf3 (layers==
+\fs22 \cf6 1
+\fs24 \cf3 )\
+    \{\
+        
+\fs22 \cf9 FILE
+\fs24 \cf3 * L1=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L1.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+        
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L1,
+\fs22 \cf6 1
+\fs24 \cf3 );\
+    \}\
+    
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (layers==
+\fs22 \cf6 2
+\fs24 \cf3 )\
+    \{\
+        
+\fs22 \cf7 if
+\fs24 \cf3 (lay==
+\fs22 \cf6 1
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf9 FILE
+\fs24 \cf3 * L1=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L1.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+            
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L1,
+\fs22 \cf6 1
+\fs24 \cf3 );\
+        \}\
+        
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (lay==
+\fs22 \cf6 2
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf9 FILE
+\fs24 \cf3 * L2=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L2.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+            
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L2,
+\fs22 \cf6 2
+\fs24 \cf3 );\
+        \}\
+    \}\
+    
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (layers==
+\fs22 \cf6 3
+\fs24 \cf3 )\
+    \{\
+        
+\fs22 \cf7 if
+\fs24 \cf3 (lay==
+\fs22 \cf6 1
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf9 FILE
+\fs24 \cf3 * L1=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L1.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+            
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L1,
+\fs22 \cf6 1
+\fs24 \cf3 );\
+        \}\
+        
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (lay==
+\fs22 \cf6 2
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf9 FILE
+\fs24 \cf3 * L2=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L2.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+            
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L2,
+\fs22 \cf6 2
+\fs24 \cf3 );\
+        \}\
+        
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (lay==
+\fs22 \cf6 3
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf9 FILE
+\fs24 \cf3 * L3=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L3.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+            
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L3,
+\fs22 \cf6 3
+\fs24 \cf3 );\
+        \}\
+    \}\
+    
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (layers==
+\fs22 \cf6 4
+\fs24 \cf3 )\
+    \{\
+        
+\fs22 \cf7 if
+\fs24 \cf3 (lay==
+\fs22 \cf6 1
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf9 FILE
+\fs24 \cf3 * L1=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L1.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+            
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L1,
+\fs22 \cf6 1
+\fs24 \cf3 );\
+        \}\
+        
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (lay==
+\fs22 \cf6 2
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf9 FILE
+\fs24 \cf3 * L2=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L2.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+            
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L2,
+\fs22 \cf6 2
+\fs24 \cf3 );\
+        \}\
+        
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (lay==
+\fs22 \cf6 3
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf9 FILE
+\fs24 \cf3 * L3=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L3.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+            
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L3,
+\fs22 \cf6 3
+\fs24 \cf3 );\
+        \}\
+        
+\fs22 \cf7 else
+\fs24 \cf3  
+\fs22 \cf7 if
+\fs24 \cf3 (lay==
+\fs22 \cf6 4
+\fs24 \cf3 )\
+        \{\
+            
+\fs22 \cf9 FILE
+\fs24 \cf3 * L4=
+\fs22 \cf10 fopen
+\fs24 \cf3 (
+\fs22 \cf5 "L4.txt"
+\fs24 \cf3 ,
+\fs22 \cf5 "w"
+\fs24 \cf3 );\
+            
+\fs22 \cf11 record
+\fs24 \cf3 (Seq,layers,size,L4,
+\fs22 \cf6 4
+\fs24 \cf3 );\
+        \}\
+    \}\
+\}\
+
+\fs22 \cf2 //-----------------------------------------------------------------------------------------------------------------------
+\fs24 \cf3 \
+
+\fs22 \cf2 /*A function responsible for waveform control*/
+\fs24 \cf3 \
+
+\fs22 \cf7 int
+\fs24 \cf3  wavechoice(
+\fs22 \cf7 int
+\fs24 \cf3  wave)\
+\{\
+    
+\fs22 \cf7 int
+\fs24 \cf3  wav;
+\fs22 \cf2 /*Stores waveform type*/
+\fs24 \cf3 \
+    wav=wave==
+\fs22 \cf6 0
+\fs24 \cf3 ?
+\fs22 \cf6 0
+\fs24 \cf3 :wave>
+\fs22 \cf6 0
+\fs24 \cf3  && wave<=
+\fs22 \cf6 65
+\fs24 \cf3 ?
+\fs22 \cf6 1
+\fs24 \cf3 :wave>
+\fs22 \cf6 65
+\fs24 \cf3  && wave<=
+\fs22 \cf6 127
+\fs24 \cf3 ?
+\fs22 \cf6 2
+\fs24 \cf3 :
+\fs22 \cf6 0
+\fs24 \cf3 ;\
+    
+\fs22 \cf7 return
+\fs24 \cf3  wav;\
+\pard\tx593\pardeftab593\pardirnatural\partightenfactor0
+
+\fs22 \cf3 \}}
